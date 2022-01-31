@@ -15,16 +15,25 @@ export class GamesRepository implements IGamesRepository {
   async findByTitleContaining(param: string): Promise<Game[]> {
     return this.repository
       .createQueryBuilder()
-      // Complete usando query builder
+      .where('title ILIKE :id', {id: '%'+param+'%' }).getMany(); // % pesquisa antes e/ou depois da string de busca
   }
 
   async countAllGames(): Promise<[{ count: string }]> {
-    return this.repository.query(); // Complete usando raw query
+    // CONTA QNTS IDS DISTINTOS TEM NA TABELA
+    return this.repository.query(`SELECT COUNT(DISTINCT id) FROM public.games;`); // Complete usando raw query
   }
 
   async findUsersByGameId(id: string): Promise<User[]> {
     return this.repository
-      .createQueryBuilder()
-      // Complete usando query builder
+      .createQueryBuilder("games")
+
+      .relation("games", "users")
+
+      .of(id)
+
+      .loadMany();
+
   }
-}
+     
+  }
+
