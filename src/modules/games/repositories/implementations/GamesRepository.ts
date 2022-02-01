@@ -2,14 +2,17 @@ import { getRepository, Repository } from 'typeorm';
 
 import { User } from '../../../users/entities/User';
 import { Game } from '../../entities/Game';
+import { IUsersRepository } from '../../../users/repositories/IUsersRepository'
 
 import { IGamesRepository } from '../IGamesRepository';
 
 export class GamesRepository implements IGamesRepository {
   private repository: Repository<Game>;
+  private repositoryUser: Repository<User>;
 
   constructor() {
     this.repository = getRepository(Game);
+    this.repositoryUser = getRepository(User)
   }
 
   async findByTitleContaining(param: string): Promise<Game[]> {
@@ -24,16 +27,24 @@ export class GamesRepository implements IGamesRepository {
   }
 
   async findUsersByGameId(id: string): Promise<User[]> {
-    return this.repository
-      .createQueryBuilder("games")
-
-      .relation("games", "users")
-
-      .of(id)
-
-      .loadMany();
-
+    return this.repositoryUser
+      .createQueryBuilder("users")
+      .innerJoinAndSelect("users.games", "games")
+      .where("games.id = :gamesId", {gamesId: id})
+      .getMany();
   }
+
+  // async findUsersByGameId(id: string): Promise<User[]> {
+  //   return this.repository
+  //     .createQueryBuilder("games")
+
+  //     .relation("games", "users")
+
+  //     .of(id)
+
+  //     .loadMany();
+
+  // }
      
   }
 
